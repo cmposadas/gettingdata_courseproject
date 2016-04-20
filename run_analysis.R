@@ -7,12 +7,14 @@ fileUrl <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%2
 download.file(fileUrl,destfile="galaxy.zip")
 
 #Load in Galaxy Data
+#Load in headers
 head <- read.table(unz("galaxy.zip", "UCI HAR Dataset/features.txt"), header=F)
 headers <- head[ , 2]
+#Load in training and test data sets
 train <- read.table(unz("galaxy.zip", "UCI HAR Dataset/train/X_train.txt"), header=F, col.names = headers)
 test <- read.table(unz("galaxy.zip", "UCI HAR Dataset/test/X_test.txt"), header=F, col.names = headers)
 
-#Append activity labels
+#Append activity labels with descriptive names
 activity_labels <- read.table(unz("galaxy.zip", "UCI HAR Dataset/activity_labels.txt"), header=F)
 
 seq <- seq(1, nrow(train))
@@ -43,18 +45,18 @@ test <- cbind(subject_id, test)
 #merge data
 merged <- rbind(train, test)
 
-#keep only subject_id, activity, std / mean fields
-index <- grep("subject_id|activity|std|mean[^(Freq)]", names(merged))
-trimmed <- merged[ , index]
+#keep only subject_id, activity and standard deviation / mean fields
+keep_index <- grep("subject_id|activity|std|mean[^(Freq)]", names(merged))
+trimmed <- merged[ , keep_index]
 
-#clean variable names
-newnames <- gsub("[.]","",names(trimmed))
-newnames <- gsub("mean","_mean_", newnames)
-newnames <- gsub("std","_std_", newnames)
-newnames <- gsub("[_]$","", newnames)
-newnames <- gsub("^t","time_", newnames)
-newnames <- gsub("^f","freq_", newnames)
-newnames <- gsub("BodyBody","Body", newnames)
+#edit variable names to make them more intuitive
+newnames <- gsub("[.]","",names(trimmed)) ##remove extra periods
+newnames <- gsub("mean","_mean_", newnames) ##add underscores to measurement type
+newnames <- gsub("std","_std_", newnames) ##add underscores to measurement type
+newnames <- gsub("[_]$","", newnames) ##remove redudant underscores
+newnames <- gsub("^t","time_", newnames) ##replace 't' prefix with 'time'
+newnames <- gsub("^f","freq_", newnames) ##replace 'f' prefix with 'freq'
+newnames <- gsub("BodyBody","Body", newnames) ##remove redundancy
 names(trimmed) <- newnames
 
 #summarize the data by taking the mean of each  variable for each activity and each subject
